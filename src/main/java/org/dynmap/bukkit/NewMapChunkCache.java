@@ -9,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.Chunk;
 import org.bukkit.block.Biome;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.Material;
 import org.dynmap.DynmapChunk;
 import org.dynmap.DynmapCore;
 import org.dynmap.DynmapWorld;
@@ -108,7 +109,7 @@ public class NewMapChunkCache extends MapChunkCache {
         @Override
         public final int getBlockTypeID() {
             if(typeid < 0) {
-                typeid = snap.getBlockTypeId(bx, y, bz);
+                typeid = helper.getBlockIDFromSnap(snap, bx, y, bz);
             }
             return typeid;
         }
@@ -501,16 +502,16 @@ public class NewMapChunkCache extends MapChunkCache {
         public final int getBlockTypeIDAt(BlockStep s) {
             if(s == BlockStep.Y_MINUS) {
                 if(y > 0)
-                    return snap.getBlockTypeId(bx, y-1, bz);
+                    return helper.getBlockIDFromSnap(snap, bx, y-1, bz);
             }
             else if(s == BlockStep.Y_PLUS) {
                 if(y < (worldheight-1))
-                    return snap.getBlockTypeId(bx, y+1, bz);
+                    return helper.getBlockIDFromSnap(snap, bx, y+1, bz);
             }
             else {
                 BlockStep ls = laststep;
                 stepPosition(s);
-                int tid = snap.getBlockTypeId(bx, y, bz);
+                int tid = helper.getBlockIDFromSnap(snap, bx, y, bz);
                 unstepPosition();
                 laststep = ls;
                 return tid;
@@ -563,7 +564,7 @@ public class NewMapChunkCache extends MapChunkCache {
             int zz = this.z + zoff;
             int idx = ((xx >> 4) - x_min) + (((zz >> 4) - z_min) * x_dim);
             try {
-                return snaparray[idx].getBlockTypeId(xx & 0xF, yy, zz & 0xF);
+                return helper.getBlockIDFromSnap(snaparray[idx], xx & 0xF, yy, zz & 0xF);
             } catch (Exception x) {
                 return 0;
             }
@@ -617,6 +618,9 @@ public class NewMapChunkCache extends MapChunkCache {
         public final int getBlockTypeId(int x, int y, int z) {
             return 0;
         }
+        public final Material getBlockType(int x, int y, int z) {
+            return Material.AIR;
+        }
         public final int getBlockData(int x, int y, int z) {
             return 0;
         }
@@ -648,7 +652,8 @@ public class NewMapChunkCache extends MapChunkCache {
      */
     private static class PlainChunk implements ChunkSnapshot {
         private int fillid;
-        PlainChunk(int fillid) { this.fillid = fillid; }
+        private Material fillmat;
+        PlainChunk(int fillid) { this.fillid = fillid; fillmat = Material.getMaterial(fillid); }
         /* Need these for interface, but not used */
         public int getX() { return 0; }
         public int getZ() { return 0; }
@@ -661,6 +666,10 @@ public class NewMapChunkCache extends MapChunkCache {
         public final int getBlockTypeId(int x, int y, int z) {
             if(y < 64) return fillid;
             return 0;
+        }
+        public final Material getBlockType(int x, int y, int z) {
+            if(y < 64) return fillmat;
+            return Material.AIR;
         }
         public final int getBlockData(int x, int y, int z) {
             return 0;
@@ -833,7 +842,7 @@ public class NewMapChunkCache extends MapChunkCache {
                             int te_z = helper.getTileEntityZ(t);
                             int cx = te_x & 0xF;
                             int cz = te_z & 0xF;
-                            int blkid = ss.getBlockTypeId(cx, te_y, cz);
+                            int blkid = helper.getBlockIDFromSnap(ss, cx, te_y, cz);
                             int blkdat = ss.getBlockData(cx, te_y, cz);
                             String[] te_fields = HDBlockModels.getTileEntityFieldsNeeded(blkid,  blkdat);
                             if(te_fields != null) {

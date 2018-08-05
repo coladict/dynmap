@@ -9,6 +9,7 @@ import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.dynmap.Log;
@@ -86,10 +87,10 @@ public class BukkitVersionHelperCB extends BukkitVersionHelperGeneric {
             biomebasehumi = getPrivateField(biomebase, new String[] { "C" }, float.class);
         }
         else {
-            biomebasetemp = getPrivateField(biomebase, new String[] { "temperature", "F", "C" }, float.class);
-            biomebasehumi = getPrivateField(biomebase, new String[] { "humidity", "G", "D" }, float.class);
+            biomebasetemp = getPrivateField(biomebase, new String[] { "temperature", "F", "C", "aO" }, float.class);
+            biomebasehumi = getPrivateField(biomebase, new String[] { "humidity", "G", "D", "aP" }, float.class);
         }
-        biomebaseidstring = getPrivateField(biomebase, new String[] { "y", "af", "ah", "z" }, String.class);
+        biomebaseidstring = getPrivateField(biomebase, new String[] { "y", "af", "ah", "z", "aS" }, String.class);
         biomebaseid = getFieldNoFail(biomebase, new String[] { "id" }, int.class);
         if (biomebaseid == null) {
             getidbybiome = getMethod(biomebase, new String[] { "a" }, new Class[] { biomebase } );
@@ -114,6 +115,13 @@ public class BukkitVersionHelperCB extends BukkitVersionHelperGeneric {
             if (longhashset != null) {
                 lhs_containskey = getMethod(longhashset, new String[] { "containsKey" }, new Class[] { int.class, int.class });
             }
+            else {
+            	longhashset = getOBCClassNoFail("org.bukkit.craftbukkit.libs.it.unimi.dsi.fastutil.longs.LongSet");
+            	if (longhashset != null) {
+                    lhs_containskey = getMethod(longhashset, new String[] { "contains" }, new Class[] { long.class });
+                    cps_unloadqueue_isSet = true;
+            	}
+            }
         }
 
         cps_unloadqueue_isSet = false;
@@ -130,7 +138,7 @@ public class BukkitVersionHelperCB extends BukkitVersionHelperGeneric {
         /** n.m.s.Chunk */
         nmschunk = getNMSClass("net.minecraft.server.Chunk");
         nmsc_tileentities = getField(nmschunk, new String[] { "tileEntities" }, Map.class);
-        nmsc_inhabitedticks = getPrivateFieldNoFail(nmschunk, new String[] { "s", "q", "u", "v", "w" }, long.class);
+        nmsc_inhabitedticks = getPrivateFieldNoFail(nmschunk, new String[] { "s", "q", "u", "v", "w", "A" }, long.class);
         if (nmsc_inhabitedticks == null) {
             Log.info("inhabitedTicks field not found - inhabited shader not functional");
         }
@@ -346,5 +354,4 @@ public class BukkitVersionHelperCB extends BukkitVersionHelperGeneric {
      */
     @Override
     public boolean isUnloadChunkBroken() { return isBadUnload; }
-
 }

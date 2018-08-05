@@ -38,6 +38,10 @@ public abstract class BukkitVersionHelper {
                 Log.info("Loading Glowstone support");
                 helper = new BukkitVersionHelperGlowstone();
             }
+            else if(Bukkit.getServer().getVersion().contains("(MC: 1.13)")) {
+            	Log.info("Loading MC 1.13 support");
+            	helper = new BukkitVersionHelperCB13();
+            }
             else {
                 helper = new BukkitVersionHelperCB();
             }
@@ -148,4 +152,10 @@ public abstract class BukkitVersionHelper {
      * @param player
      */
     public String getSkinURL(Player player) { return null; }
+    /**
+     * Get block ID from snapshot
+     */
+    public int getBlockIDFromSnap(ChunkSnapshot css, int x, int y, int z) {
+    	return css.getBlockTypeId(x, y, z);
+    }
 }
